@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Upload, Users, Target, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import GeminiConnection from '@/components/GeminiConnection';
 
 const Home = () => {
   const quickActions = [
@@ -31,6 +32,9 @@ const Home = () => {
 
   return (
     <div className="space-y-8">
+      {/* Gemini AI Connection */}
+      <GeminiConnection />
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-[#003366] to-[#0099FF] text-white rounded-lg p-8">
         <div className="max-w-3xl">
