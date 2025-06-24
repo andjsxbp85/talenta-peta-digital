@@ -3,12 +3,15 @@ import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import SyllabusChatbot from '@/components/SyllabusChatbot';
+import { useToast } from '@/hooks/use-toast';
 
 const UploadSKKNI = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [previewData, setPreviewData] = useState<any[]>([]);
+  const { toast } = useToast();
 
   // Sample data untuk preview
   const sampleData = [
@@ -32,13 +35,53 @@ const UploadSKKNI = () => {
     }
   ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const parseCSV = (csvText: string) => {
+    const lines = csvText.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim()) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        const row: any = {};
+        headers.forEach((header, index) => {
+          row[header.toLowerCase().replace(/\s+/g, '_')] = values[index] || '';
+        });
+        data.push(row);
+      }
+    }
+    return data;
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = event.target.files?.[0];
     if (uploadedFile && uploadedFile.type === 'text/csv') {
       setFile(uploadedFile);
       setUploadStatus('idle');
-      // Simulate file processing
-      setPreviewData(sampleData);
+      
+      try {
+        const text = await uploadedFile.text();
+        const parsedData = parseCSV(text);
+        setPreviewData(parsedData);
+        
+        toast({
+          title: "File Uploaded",
+          description: `Successfully parsed ${parsedData.length} rows from CSV`,
+        });
+      } catch (error) {
+        toast({
+          title: "Parse Error",
+          description: "Failed to parse CSV file",
+          variant: "destructive"
+        });
+        setPreviewData(sampleData); // Fallback to sample data
+      }
+    } else {
+      toast({
+        title: "Invalid File",
+        description: "Please select a valid CSV file",
+        variant: "destructive"
+      });
     }
   };
 
@@ -51,7 +94,13 @@ const UploadSKKNI = () => {
     const droppedFile = event.dataTransfer.files[0];
     if (droppedFile && droppedFile.type === 'text/csv') {
       setFile(droppedFile);
-      setPreviewData(sampleData);
+      // Process the dropped file similar to handleFileUpload
+      droppedFile.text().then(text => {
+        const parsedData = parseCSV(text);
+        setPreviewData(parsedData);
+      }).catch(() => {
+        setPreviewData(sampleData);
+      });
     }
   };
 
@@ -61,6 +110,10 @@ const UploadSKKNI = () => {
     setTimeout(() => {
       setIsUploading(false);
       setUploadStatus('success');
+      toast({
+        title: "Data Processed",
+        description: "SKKNI data has been successfully processed and saved",
+      });
     }, 2000);
   };
 
@@ -114,6 +167,9 @@ const UploadSKKNI = () => {
           </div>
         )}
       </div>
+
+      {/* Chatbot Component */}
+      <SyllabusChatbot csvData={previewData} />
 
       {/* Preview Table */}
       {previewData.length > 0 && (

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,49 @@ const GeminiConnection = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState('');
   const { toast } = useToast();
+
+  // Load API key from localStorage on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('gemini_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+      // Auto-check connection status if key exists
+      checkConnection(savedApiKey);
+    }
+  }, []);
+
+  const checkConnection = async (keyToCheck: string) => {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToCheck}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: "Test connection"
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      if (response.ok) {
+        setIsConnected(true);
+        setConnectionError('');
+      } else {
+        setIsConnected(false);
+        setConnectionError(`Connection failed: ${response.status}`);
+      }
+    } catch (error) {
+      setIsConnected(false);
+      setConnectionError(error instanceof Error ? error.message : 'Connection failed');
+    }
+  };
 
   const testConnection = async () => {
     if (!apiKey.trim()) {
@@ -49,9 +92,11 @@ const GeminiConnection = () => {
       if (response.ok) {
         const data = await response.json();
         setIsConnected(true);
+        // Save API key to localStorage
+        localStorage.setItem('gemini_api_key', apiKey);
         toast({
           title: "Connected Successfully",
-          description: "Gemini AI connection established",
+          description: "Gemini AI connection established and API key saved",
         });
         console.log('Gemini AI Response:', data);
       } else {
