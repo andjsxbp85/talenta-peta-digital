@@ -105,6 +105,21 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Google Looker Studio Dashboard */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-2xl font-bold text-[#003366] mb-6">Dashboard Analitik</h2>
+        <div className="w-full">
+          <iframe 
+            className="w-full h-[450px] md:h-[500px] lg:h-[600px] rounded-lg border border-gray-200"
+            src="https://lookerstudio.google.com/embed/reporting/78d58971-02ce-445c-83b8-cde8d84c714c/page/KPcNF" 
+            frameBorder="0" 
+            style={{border: 0}} 
+            allowFullScreen 
+            sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          />
+        </div>
+      </div>
+
       {/* Features Overview */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-[#003366] mb-6">Fitur Utama Platform</h2>
